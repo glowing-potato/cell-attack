@@ -9,15 +9,7 @@ Packets
 
 ### Connect Packet
 
-Client -> Server:
-
-```
-0                8
-+----------------+--------------
-| Username Len   | Username...
-+----------------+--------------
-```
-
+The first packet is a text packet sent from the client to the server that contains the name of the player.
 
 Server -> Client (may be sent multiple times):
 
