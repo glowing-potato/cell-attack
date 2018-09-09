@@ -33,6 +33,27 @@ export default class ConnectPage extends React.Component {
             this.setState({
                 "loading": true
             });
+            let socket = new WebSocket(this.state.address, "cell-attack-v0");
+            socket.binaryType = "arraybuffer";
+            socket.onopen = () => {
+                socket.send(this.state.name);
+            };
+            socket.onmessage = ev => {
+                let arr = new Uint8Array(ev.data);
+                if (ev.data.byteLength !== 1) {
+                    console.log(ev.data.byteLength);
+                    console.error("Invalid packet received!");
+                } else if (arr[0] & 0x80) {
+                    this.setState({
+                        "loading": false
+                    });
+                    socket.close();
+                } else if (arr[0] === 1) {
+                    if (this.props.onConnect) {
+                        this.props.onConnect(socket, this.state.name);
+                    }
+                }
+            };
         }
     }
 
@@ -49,7 +70,7 @@ export default class ConnectPage extends React.Component {
                                 <label htmlFor="address">
                                     Address
                                 </label>
-                                <input className={this.state.loading ? "disabled" : ""} disabled={this.state.loading} type="text" name="address" value={this.state.address} onChange={this.handleAddressChange} />
+                                <input className={this.state.loading ? "disabled" : ""} disabled={this.state.loading} type="url" name="address" value={this.state.address} onChange={this.handleAddressChange} />
                             </div>
                             <div>
                                 <label htmlFor="name">

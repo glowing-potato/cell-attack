@@ -1,0 +1,45 @@
+.GameView {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vw;
+    display: flex;
+    flex-direction: column;
+}
+.GameView .titlebar {
+    height: 50px;
+    background-color: #3F3F5F;
+    flex-grow: 0;
+    color: #EFEFEF;
+    position: relative;
+}
+.GameView .titlebar .name {
+    margin-left: 10px;
+    font-size: 30px;
+    line-height: 50px;
+}
+.GameView .titlebar .score {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    height: 40px;
+    background-color: #1F1F1F;
+    border-radius: 10px;
+    font-size: 20px;
+    line-height: 40px;
+    padding: 0 20px;
+}
+.GameView .container {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: row;
+}
+.GameView .sidebar {
+    width: 320px;
+    background-color: #AFAFCF;
+    flex-grow: 0;
+}
+.GameView canvas {
+    flex-grow: 1;
+}
