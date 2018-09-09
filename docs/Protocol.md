@@ -121,6 +121,8 @@ This packet is sent from the server to the client to update how many available c
 +----------------+----------------+----------------+----------------+
 | Number of Cells (IEEE float)                                      |
 +----------------+----------------+----------------+----------------+
+| Score (IEEE float)                                                |
++----------------+----------------+----------------+----------------+
 ```
 
 ### Client Draw Packet
