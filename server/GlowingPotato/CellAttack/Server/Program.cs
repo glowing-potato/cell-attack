@@ -38,7 +38,7 @@ namespace GlowingPotato.CellAttack.Server
 
             // create server
             List<IClientProxy> clients = new List<IClientProxy>();
-            List<string> names = new List<string>();
+            List<string> names = new List<string>(new string[] { "conflict" }); // for testing the name checker
             WebSocketServer server = new WebSocketServer("ws://0.0.0.0:8181");
 
             server.SupportedSubProtocols = new string[] { "cell-attack-v0" };
@@ -114,10 +114,15 @@ namespace GlowingPotato.CellAttack.Server
                 Console.WriteLine("Simulated world. Took " + (time2 - time1).Milliseconds + "ms");
 
             }), Task.Delay(100))).ContinueWith(simTask, token.Token);
-            // token.Cancel();
 
-            Console.WriteLine("Server terminated. Press any key to continue...");
-            Console.ReadKey();
+            Task delayTask = Task.Delay(-1, token.Token).ContinueWith((a) =>
+            {
+                Console.WriteLine("Server terminated. Press any key to continue...");
+                Console.ReadKey();
+            });
+            // token.Cancel();
+            Task.WaitAll(delayTask);
+            
         }
 
         static void SendToAll(byte[] message, List<IClientProxy> sockets)
