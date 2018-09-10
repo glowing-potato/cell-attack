@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 
-namespace server
+namespace GlowingPotato.CellAttack.Server.Simulator
 {
 
     public class Chunk
@@ -11,8 +11,7 @@ namespace server
         public const int COLOR_MASK = 0x07;
         public const int TIMER_MASK = 0xF8;
 
-        public const int COLOR_DEAD = 0x00;
-        public static readonly int[] COLORS = new int[] { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07 };
+        public static readonly int[] COLORS = new int[] { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07 };
 
         private byte[] oldChunk = new byte[SIZE * SIZE];
         private byte[] newChunk = new byte[SIZE * SIZE];
@@ -33,25 +32,19 @@ namespace server
         /// <param name="sw">The chunk to the southwest of this one</param>
         /// <param name="w">The chunk to the west of this one</param>
         /// <param name="nw">The chunk to the northwest of this one</param>
+        /// <param name="worldInterface">The interface allowing access to the world's chunk map</param>
         /// <returns>If the simulator needs to keep simulating this chunk</returns>
-        public bool Simulate(Chunk n, Chunk ne, Chunk e, Chunk se, Chunk s, Chunk sw, Chunk w, Chunk nw)
+        public bool Simulate(Chunk n, Chunk ne, Chunk e, Chunk se, Chunk s, Chunk sw, Chunk w, Chunk nw, IWorldInterface worldInterface)
         {
             bool result = false;
 
             // simulate main area
-            for (int y = 1; y < SIZE - 1; ++y)
+            for (int y = 1; y < 10/*SIZE - 1*/; ++y)
             {
-                for (int x = 1; x < SIZE - 1; ++x)
+                for (int x = 1; x < /*SIZE - 1*/ 10; ++x)
                 {
                     // get cell
                     int cell = GetCellFromLocalCoords(x, y, oldChunk);
-
-                    // check if the cell is dead
-                    if ((cell & TIMER_MASK) == (0xFF & TIMER_MASK))
-                    {
-                        SetCellFromLocalCoords(x, y, newChunk, 0);
-                        continue;
-                    }
 
                     // figure out color counts of neigbors
                     int[] colorCounts = GetNeighborColorCounts(x, y, oldChunk);
@@ -59,21 +52,22 @@ namespace server
                     int total = colorCounts.Sum();
                     int maxIndex = IndexOfMax(colorCounts);
 
-                    bool alive = (cell & COLOR_MASK) != 0 && (cell & TIMER_MASK) == 0;
+                    bool alive = (cell & TIMER_MASK) == 0;
 
                     // figure out what to do with this cell
-                    if (alive) {
+                    if (alive)
+                    {
                         // cell is already alive, update it
                         result = true;
-                        if (total < 3 || total > 4)
+                        if (total < 2 || total > 3)
                         {
-                           // less than 3 neighbors or more than 4 neighbors, cell dies
-                           SetCellFromLocalCoords(x, y, newChunk, cell | 0x08);
+                            // less than 3 neighbors or more than 4 neighbors, cell dies
+                            SetCellFromLocalCoords(x, y, newChunk, cell | 0x08);
                         }
-                        else if (total == 3 || total == 4)
+                        else if (total == 2 || total == 3)
                         {
                             // 3 or 4 neighbors, cell lives
-                            SetCellFromLocalCoords(x, y, newChunk, cell);
+                            SetCellFromLocalCoords(x, y, newChunk, cell & COLOR_MASK);
                         }
                     }
                     else
@@ -83,26 +77,28 @@ namespace server
                         {
                             // exactly 3 neighbors, create the cell
                             SetCellFromLocalCoords(x, y, newChunk, COLORS[maxIndex]);
+                            alive = true;
                         }
                     }
 
                     // increment timer
-                    if ((cell & TIMER_MASK) != 0)
+                    if (!alive && (cell & TIMER_MASK) != TIMER_MASK)
                     {
-                        cell++;
+                        SetCellFromLocalCoords(x, y, newChunk, cell + 0x08);
                     }
-
-
                 }
             }
 
+            // return the state of the chunk
+            return result;
+        }
+
+        public void SwapBuffers()
+        {
             // swap cell grids
             byte[] temp = oldChunk;
             oldChunk = newChunk;
             newChunk = temp;
-
-            // return the state of the chunk
-            return result;
         }
 
         public int IndexOfMax(int[] array)
@@ -130,68 +126,40 @@ namespace server
 
         public int[] GetNeighborColorCounts(int x, int y, byte[] array)
         {
-            int[] neighbors = new int[] {  GetCellFromLocalCoords(x + 1, y, array),
+            int[] neighbors = new int[] {
+                GetCellFromLocalCoords(x + 1, y, array),
                 GetCellFromLocalCoords(x + 1, y - 1, array),
                 GetCellFromLocalCoords(x, y - 1, array),
                 GetCellFromLocalCoords(x - 1, y - 1, array),
                 GetCellFromLocalCoords(x - 1, y, array),
                 GetCellFromLocalCoords(x - 1, y + 1, array),
                 GetCellFromLocalCoords(x, y + 1, array),
-                GetCellFromLocalCoords(x + 1, y + 1, array) };
+                GetCellFromLocalCoords(x + 1, y + 1, array)
+            };
 
-            int[] result = new int[7];
-            foreach (IGrouping<int, int> g in neighbors.GroupBy((b) => b & COLOR_MASK))
+            int[] result = new int[8];
+            foreach (IGrouping<int, int> g in neighbors.Where((a) => (a & TIMER_MASK) == 0).GroupBy((b) => b & COLOR_MASK))
             {
-                if (g.Key > 0)
-                {
-                    result[g.Key - 1] = g.Count();
-                }
+                    result[g.Key] = g.Count();
+                
             }
 
-            return result;//.OrderBy((e) => e.Item1).Select((e) => e.Item2).ToArray();
+            return result;
 
-        }
-
-        public int GetCellCountFromCoordsMatching(byte x, byte y, int[] neighbors, int mask)
-        {
-            int total = 0;
-            for (int i = 0; i < neighbors.Length; ++i)
-            {
-                total += (neighbors[i] & mask) == mask ? 1 : 0;
-            }
-            return total;
         }
 
         public int GetCellFromLocalCoords(int x, int y, byte[] array)
         {
-            return array[y * SIZE + x];
+            if (x >= 0 && x < SIZE && y >= 0 && y < SIZE)
+            {
+                return array[y * SIZE + x];
+            }
+            return -1;
         }
 
         public void SetCellFromLocalCoords(int x, int y, byte[] array, int value)
         {
-            array[y * SIZE + x] = (byte) value;
+            array[y * SIZE + x] = (byte)value;
         }
-
-        public override string ToString()
-        {
-            string result = "";
-            for (int y = 1; y < SIZE - 1; ++y)
-            {
-                for (int x = 1; x < SIZE - 1; ++x)
-                {
-                    if ((GetCellFromLocalCoords(x, y, oldChunk) & TIMER_MASK) == 0 && ((GetCellFromLocalCoords(x, y, oldChunk) & COLOR_MASK) != 0))
-                    {
-                        result += "*";
-                    }
-                    else
-                    {
-                        result += " ";
-                    }
-                }
-                result += "\n";
-            }
-            return result;
-        }
-
     }
 }

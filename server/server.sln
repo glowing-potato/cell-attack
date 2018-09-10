@@ -5,6 +5,11 @@ VisualStudioVersion = 15.0.27130.2026
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "server", "server.csproj", "{BE1F58F1-07A9-41BB-9C3D-A9978D27B79B}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{968F6121-EC6F-49CB-A1BC-29AB821A9127}"
+	ProjectSection(SolutionItems) = preProject
+		IWorldInterface.cs = IWorldInterface.cs
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

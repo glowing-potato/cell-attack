@@ -1,4 +1,4 @@
-namespace server
+namespace GlowingPotato.CellAttack.Server.Simulator
 {
     public class ChunkPos
     {

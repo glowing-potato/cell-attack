@@ -1,12 +1,13 @@
 using System.Collections.Generic;
 
-namespace server
+namespace GlowingPotato.CellAttack.Server.Simulator
 {
 
     public class World
     {
 
         private Dictionary<ChunkPos, Chunk> map = new Dictionary<ChunkPos, Chunk>();
+        private IWorldInterface worldInterface;
 
         public World()
         {
@@ -29,13 +30,18 @@ namespace server
                 Chunk nw = null;//map[pos.North().West()];
 
                 // simulate chunk
-                bool simulate = c.Simulate(n, ne, e, se, s, sw, w, nw);
+                bool simulate = c.Simulate(n, ne, e, se, s, sw, w, nw, null);
 
                 // if chunk is empty, delete it
                 if (!simulate)
                 {
                     map.Remove(pos);
                 }
+            }
+            foreach (ChunkPos pos in map.Keys)
+            {
+                // swap buffers
+                map[pos].SwapBuffers();
             }
         }
 
