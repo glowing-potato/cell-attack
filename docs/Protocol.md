@@ -90,7 +90,7 @@ Each byte follows the following format:
 ```
 
 The timer is the amount of time since the cell died, or `00000` if the cell is currently alive.
-The color is `000` if the cell is dead and the timer has run out.
+Once the timer reaches `11111`, the timer stops running.
 
 ### Client Cell Update Packet
 

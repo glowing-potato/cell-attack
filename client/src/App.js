@@ -1,6 +1,7 @@
 import React from "react";
 import ConnectPage from "./ConnectPage";
 import GameView from "./GameView";
+import TwoDimensionalArray from "./TwoDimensionalArray";
 
 export default class App extends React.Component {
     constructor(props) {
@@ -17,7 +18,9 @@ export default class App extends React.Component {
             "topY": 0,
             "width": 0,
             "height": 0,
-            "socket": null
+            "socket": null,
+            "field": new TwoDimensionalArray(1, 1),
+            "fieldNonce": 0
         };
         this.handleConnect = this.handleConnect.bind(this);
         this.handleMessage = this.handleMessage.bind(this);
@@ -32,6 +35,7 @@ export default class App extends React.Component {
         });
         socket.onmessage = this.handleMessage;
         socket.onclose = this.handleClose;
+        this.handleViewResize(0, 0, 64, 64);
     }
 
     handleMessage(ev) {
@@ -46,7 +50,7 @@ export default class App extends React.Component {
                 break;
             case 9:
                 arr = new Float32Array(ev.data, 1);
-                arr2 = new Uint8Array(ev.data);
+                arr2 = new Uint8Array(ev.data, 0);
                 this.setState({
                     "centerX": arr[0],
                     "centerY": arr[1],
@@ -58,7 +62,12 @@ export default class App extends React.Component {
                 if (ev.data.byteLength < 12) {
                     console.error("Invalid packet received!");
                 } else {
-
+                    arr = new Int32Array(ev.data, 0, 8);
+                    arr2 = new Uint16Array(ev.data, 8, 4);
+                    this.state.field.setRange(arr[0] - this.state.leftX, arr[1] - this.state.topY, arr2[0], arr2[1], new Uint8Array(ev.data, 12));
+                    this.setState({
+                        "fieldNonce": this.state.fieldNonce + 1
+                    });
                 }
                 break;
         }
@@ -75,7 +84,8 @@ export default class App extends React.Component {
             "leftX": leftX,
             "topY": topY,
             "width": width,
-            "height": height
+            "height": height,
+            "field": new TwoDimensionalArray(width, height)
         });
         let buf = new ArrayBuffer(12);
         let arr = new Int32Array(buf);
@@ -102,7 +112,9 @@ export default class App extends React.Component {
     render() {
         return this.state.connected ? (
             <div>
-                <GameView name={this.state.name} score={this.state.score} />
+                <GameView name={this.state.name} score={this.state.score} leftX={this.state.leftX}
+                        topY={this.state.topY} width={this.state.width} height={this.state.height}
+                        field={this.state.field} fieldNonce={this.state.fieldNonce} />
             </div>
         ) : (
             <div>
