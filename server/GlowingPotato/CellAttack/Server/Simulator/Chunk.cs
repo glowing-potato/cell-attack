@@ -18,7 +18,8 @@ namespace GlowingPotato.CellAttack.Server.Simulator
 
         public Chunk()
         {
-
+            Array.Fill(oldChunk, (byte)TIMER_MASK);
+            Array.Fill(newChunk, (byte)TIMER_MASK);
         }
 
         /// <summary>
@@ -112,6 +113,17 @@ namespace GlowingPotato.CellAttack.Server.Simulator
                 }
             }
             return maxIndex;
+        }
+
+        public void LoadThing(byte[] thing, int left, int top, int width, int height, byte defaultCell)
+        {
+            for (int y = 0; y < height; ++y)
+            {
+                for (int x = 0; x < width; ++x)
+                {
+                    SetCellFromLocalCoords(x + left, y + top, oldChunk, thing[y * width + x] != 0 ? defaultCell : TIMER_MASK);
+                }
+            }
         }
 
         public byte[] GetOldBackingArray()

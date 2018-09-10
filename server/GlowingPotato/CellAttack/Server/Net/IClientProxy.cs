@@ -14,6 +14,8 @@ namespace GlowingPotato.CellAttack.Server.Net
 
         void SendCellUpdatePacket(float cells, float score);
 
+        void GetConnectPacket(out string name);
+
         void GetScreenSizePacket(out int leftX, out int topY, out short width, out short height);
 
         void GetClientDrawPacket(out int leftX, out int topY, out short width, out short height, out byte[] data);

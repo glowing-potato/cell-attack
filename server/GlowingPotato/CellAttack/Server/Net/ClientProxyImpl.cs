@@ -25,6 +25,11 @@ namespace GlowingPotato.CellAttack.Server.Net
             this.connection = connection;
         }
 
+        public void GetConnectPacket(out string name)
+        {
+            name = this.name;
+        }
+
         public void GetClientDrawPacket(out int leftX, out int topY, out short width, out short height, out byte[] data)
         {
             leftX = drawLeftX;

@@ -11,45 +11,35 @@ namespace GlowingPotato.CellAttack.Server
     class Program
     {
 
+        public static readonly byte[] gliderGun = new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                                               0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                                               0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1,
+                                                               0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1,
+                                                               0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                                               0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                                               0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                                               0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                                               0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+                                                             };
         public const int PLAYER_COUNT = 1;
+
+        private static Timer simTimer;
 
         static void Main(string[] args)
         {
             Console.WriteLine(" ----- Cell Attack Server v1.0 ----- ");
 
+            // create world
             World w = new World();
-            List<IClientProxy> clients = new List<IClientProxy>();
-            WebSocketServer server = new WebSocketServer("ws://0.0.0.0:8181");
-
-            // testing purposes only
+            // ---------- TESTING PURPOSES ONLY ----------
             w.AddChunk(new ChunkPos(0, 0));
-            Array.Fill(w.GetChunk(new ChunkPos(0, 0)).GetOldBackingArray(), (byte) Chunk.TIMER_MASK);
-            Array.Fill(w.GetChunk(new ChunkPos(0, 0)).GetNewBackingArray(), (byte)Chunk.TIMER_MASK);
-            w.GetChunk(new ChunkPos(0, 0)).GetOldBackingArray()[Chunk.SIZE * 1 + 3] = 0x07;
-            w.GetChunk(new ChunkPos(0, 0)).GetOldBackingArray()[Chunk.SIZE * 2 + 4] = 0x07;
-            w.GetChunk(new ChunkPos(0, 0)).GetOldBackingArray()[Chunk.SIZE * 3 + 2] = 0x07;
-            w.GetChunk(new ChunkPos(0, 0)).GetOldBackingArray()[Chunk.SIZE * 3 + 3] = 0x07;
-            w.GetChunk(new ChunkPos(0, 0)).GetOldBackingArray()[Chunk.SIZE * 3 + 4] = 0x07;
-            
+            w.GetChunk(new ChunkPos(0, 0)).LoadThing(gliderGun, 5, 5, 37, 9, 0x07);
+            // ---------- --------------------- ----------
 
-            int ctr = 0;
-            Timer t = new Timer(500);
-            t.Elapsed += (sender, eventArgs) =>
-            {
-                SendToAll(w.GetChunk(new ChunkPos(0, 0)).GetOldBackingArray(), clients);
-
-                DateTime time1 = System.DateTime.Now;
-                w.Simulate();
-                DateTime time2 = System.DateTime.Now;
-                Console.WriteLine("Simulated world. Took " + (time2 - time1).Milliseconds + "ms");
-
-                ctr++;
-               // if (ctr == 1)
-                //{
-                   // t.Stop();
-                //}
-                
-            };
+            // create server
+            List<IClientProxy> clients = new List<IClientProxy>();
+            List<string> names = new List<string>();
+            WebSocketServer server = new WebSocketServer("ws://0.0.0.0:8181");
 
             server.SupportedSubProtocols = new string[] { "cell-attack-v0" };
             server.Start(socket =>
@@ -60,24 +50,37 @@ namespace GlowingPotato.CellAttack.Server
                 socket.OnOpen = () =>
                 {
                     Console.WriteLine("Client connected. Awaiting connect packet.");
+                    bool done = false;
+                    string name = null;
 
-                    socket.Send(new byte[] { 0 });
+                    // loop until they provide a valid username
+                    while (!done)
+                    {
+                        proxy.GetConnectPacket(out name);
+                        if (!names.Contains(name))
+                        {
+                            done = true;
+                            proxy.SendConnectPacket(0);
+                        }
+                        else
+                        {
+                            proxy.SendConnectPacket(128);
+                        }
+                    }
 
+                    // connect player
+                    Console.WriteLine("Player \"" + name + "\" connected. Waiting for " + (PLAYER_COUNT - clients.Count) + " more player(s).");
                     clients.Add(proxy);
 
+                    // if all players connected, start the game
                     if (clients.Count == PLAYER_COUNT)
                     {
                         Console.WriteLine("All clients connected, starting server...");
-
                         foreach (IClientProxy s in clients)
                         {
                             s.SendConnectPacket(1);
                         }
-
-                        t.Start();
-                        //t.Stop();
-                        //w.Simulate();
-                        //w.Simulate();
+                        simTimer.Start();
                     }
                 };
                 socket.OnClose = () =>
@@ -87,14 +90,29 @@ namespace GlowingPotato.CellAttack.Server
                 };
                 socket.OnMessage = message =>
                 {
-                    
+
                 };
                 socket.OnBinary = message =>
                 {
-                    
+
                 };
-                
+
             });
+
+            simTimer = new Timer(100);
+            //simTimer.AutoReset = false;
+            simTimer.Elapsed += (sender, eventArgs) =>
+            {
+                SendToAll(w.GetChunk(new ChunkPos(0, 0)).GetOldBackingArray(), clients);
+
+                DateTime time1 = System.DateTime.Now;
+                w.Simulate();
+                DateTime time2 = System.DateTime.Now;
+                Console.WriteLine("Simulated world. Took " + (time2 - time1).Milliseconds + "ms");
+
+            };
+
+            Console.WriteLine("Server terminated. Press any key to continue...");
             Console.ReadKey();
         }
 
