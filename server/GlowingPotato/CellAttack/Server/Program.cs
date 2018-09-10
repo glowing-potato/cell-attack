@@ -23,7 +23,7 @@ namespace GlowingPotato.CellAttack.Server
                                                              };
         public const int PLAYER_COUNT = 1;
 
-        private static Timer simTimer;
+        private static Action<Task> simTask;
 
         static void Main(string[] args)
         {
@@ -80,7 +80,7 @@ namespace GlowingPotato.CellAttack.Server
                         {
                             s.SendConnectPacket(1);
                         }
-                        simTimer.Start();
+                        simTask(null);
                     }
                 };
                 socket.OnClose = () =>
@@ -99,18 +99,22 @@ namespace GlowingPotato.CellAttack.Server
 
             });
 
-            simTimer = new Timer(100);
-            //simTimer.AutoReset = false;
-            simTimer.Elapsed += (sender, eventArgs) =>
+            // create simulation task
+            System.Threading.CancellationTokenSource token = new System.Threading.CancellationTokenSource();
+            simTask = (a) => Task.Run(() =>
+            Task.WaitAll(
+            Task.Run(() =>
             {
                 SendToAll(w.GetChunk(new ChunkPos(0, 0)).GetOldBackingArray(), clients);
 
                 DateTime time1 = System.DateTime.Now;
                 w.Simulate();
                 DateTime time2 = System.DateTime.Now;
+
                 Console.WriteLine("Simulated world. Took " + (time2 - time1).Milliseconds + "ms");
 
-            };
+            }), Task.Delay(100))).ContinueWith(simTask, token.Token);
+            // token.Cancel();
 
             Console.WriteLine("Server terminated. Press any key to continue...");
             Console.ReadKey();
