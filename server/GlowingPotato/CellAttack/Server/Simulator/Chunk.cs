@@ -39,9 +39,9 @@ namespace GlowingPotato.CellAttack.Server.Simulator
             bool result = false;
 
             // simulate main area
-            for (int y = 1; y < 10/*SIZE - 1*/; ++y)
+            for (int y = 1; y < SIZE - 1; ++y)
             {
-                for (int x = 1; x < /*SIZE - 1*/ 10; ++x)
+                for (int x = 1; x < SIZE - 1; ++x)
                 {
                     // get cell
                     int cell = GetCellFromLocalCoords(x, y, oldChunk);

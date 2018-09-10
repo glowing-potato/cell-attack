@@ -25,9 +25,12 @@ namespace GlowingPotato.CellAttack.Server
             w.AddChunk(new ChunkPos(0, 0));
             Array.Fill(w.GetChunk(new ChunkPos(0, 0)).GetOldBackingArray(), (byte) Chunk.TIMER_MASK);
             Array.Fill(w.GetChunk(new ChunkPos(0, 0)).GetNewBackingArray(), (byte)Chunk.TIMER_MASK);
-            w.GetChunk(new ChunkPos(0, 0)).GetOldBackingArray()[Chunk.SIZE * 2 + 2] = 0x07;
-            w.GetChunk(new ChunkPos(0, 0)).GetOldBackingArray()[Chunk.SIZE * 2 + 3] = 0x07;
+            w.GetChunk(new ChunkPos(0, 0)).GetOldBackingArray()[Chunk.SIZE * 1 + 3] = 0x07;
             w.GetChunk(new ChunkPos(0, 0)).GetOldBackingArray()[Chunk.SIZE * 2 + 4] = 0x07;
+            w.GetChunk(new ChunkPos(0, 0)).GetOldBackingArray()[Chunk.SIZE * 3 + 2] = 0x07;
+            w.GetChunk(new ChunkPos(0, 0)).GetOldBackingArray()[Chunk.SIZE * 3 + 3] = 0x07;
+            w.GetChunk(new ChunkPos(0, 0)).GetOldBackingArray()[Chunk.SIZE * 3 + 4] = 0x07;
+            
 
             int ctr = 0;
             Timer t = new Timer(500);
