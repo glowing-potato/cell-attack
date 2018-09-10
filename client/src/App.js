@@ -25,6 +25,7 @@ export default class App extends React.Component {
         this.handleConnect = this.handleConnect.bind(this);
         this.handleMessage = this.handleMessage.bind(this);
         this.handleClose = this.handleClose.bind(this);
+        this.handleViewResize = this.handleViewResize.bind(this);
     }
 
     handleConnect(socket, name) {
@@ -114,7 +115,7 @@ export default class App extends React.Component {
             <div>
                 <GameView name={this.state.name} score={this.state.score} leftX={this.state.leftX}
                         topY={this.state.topY} width={this.state.width} height={this.state.height}
-                        field={this.state.field} fieldNonce={this.state.fieldNonce} />
+                        field={this.state.field} fieldNonce={this.state.fieldNonce} onViewResize={this.handleViewResize} />
             </div>
         ) : (
             <div>
