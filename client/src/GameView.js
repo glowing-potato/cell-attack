@@ -21,7 +21,6 @@ export default class GameView extends React.Component {
                 ctx.fillRect(x * 1000 / this.props.width, y * 1000 / this.props.height, 1000 / this.props.width - 1, 1000 / this.props.height - 1);
             }
         }
-        console.log("Rendering");
     }
 
     render() {
