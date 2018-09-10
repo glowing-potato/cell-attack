@@ -35,20 +35,57 @@ for (let c = 0; c < 8; ++c) {
 }
 
 export default class GameView extends React.Component {
-    shouldComponentUpdate(nextProps) {
-        return nextProps.fieldNonce !== this.props.fieldNonce;
+    constructor(props) {
+        super(props);
+        this.state = {
+            "width": 1000,
+            "height": 1000
+        };
+        this.handleResize = this.handleResize.bind(this);
     }
 
-    componentDidUpdate() {
+    shouldComponentUpdate(nextProps) {
+        return nextProps.fieldNonce !== this.props.fieldNonce || nextProps.width !== this.props.width || nextProps.height !== this.props.height;
+    }
+
+    componentDidUpdate(lastProps) {
+        if (lastProps.width !== this.props.width || lastProps.height !== this.props.height) {
+            this.handleResize();
+        }
         let ctx = this.canvas.getContext("2d");
         ctx.fillStyle = "#7F7F7F";
-        ctx.fillRect(0, 0, 1000, 1000);
+        ctx.fillRect(0, 0, this.state.width, this.state.height);
         for (let x = this.props.leftX; x < this.props.leftX + this.props.width; ++x) {
             for (let y = this.props.topY; y < this.props.topY + this.props.height; ++y) {
                 ctx.fillStyle = colorCodes[this.props.field.get(x, y)];
-                ctx.fillRect(x * 1000 / this.props.width, y * 1000 / this.props.height, 1000 / this.props.width - 1, 1000 / this.props.height - 1);
+                ctx.fillRect(x * this.state.width / this.props.width, y * this.state.height / this.props.height, this.state.width / this.props.width - 1, this.state.height / this.props.height - 1);
             }
         }
+    }
+
+    componentDidMount() {
+        this.handleResize();
+        window.addEventListener("resize", this.handleResize);
+    }
+
+    componentWillUnmount() {
+        window.removeEventListener("resize", this.handleResize);
+    }
+
+    handleResize() {
+        let w = this.canvasDiv.clientWidth - 10;
+        let h = this.canvasDiv.clientHeight - 10;
+        if (this.props.height > 0 && this.props.width > 0) {
+            let aspectX = w / this.props.width;
+            let aspectY = h / this.props.height;
+            if (Math.abs(aspectX - aspectY) > Math.abs(aspectX) / 10) {
+                this.props.onViewResize(this.props.leftX, this.props.topY, this.props.width, Math.ceil(this.props.height * aspectY / aspectX));
+            }
+        }
+        this.setState({
+            "width": w,
+            "height": h
+        });
     }
 
     render() {
@@ -66,7 +103,9 @@ export default class GameView extends React.Component {
                     <div className="sidebar">
 
                     </div>
-                    <canvas ref={el => this.canvas = el} width="1000" height="1000" />
+                    <div className="canvas" ref={el => this.canvasDiv = el}>
+                        <canvas ref={el => this.canvas = el} width={this.state.width} height={this.state.height} />
+                    </div>
                 </div>
             </div>
         );
