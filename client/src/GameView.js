@@ -40,9 +40,9 @@ export default class GameView extends React.Component {
         this.state = {
             "width": 1000,
             "height": 1000,
-            "viewX": 0,
-            "viewY": 0,
-            "viewWidth": 64,
+            "viewX": this.props.centerX,
+            "viewY": this.props.centerY,
+            "viewWidth": this.props.width,
             "dragX": null,
             "dragY": null
         };
@@ -54,18 +54,32 @@ export default class GameView extends React.Component {
     }
 
     shouldComponentUpdate(nextProps) {
-        return nextProps.fieldNonce !== this.props.fieldNonce;
+        return nextProps.fieldNonce !== this.props.fieldNonce || nextProps.centerX !== this.props.centerX || nextProps.centerY !== this.props.centerY;
     }
 
-    componentDidUpdate() {
+    componentDidUpdate(prevProps) {
+        let viewX;
+        let viewY;
+        let viewHeight = this.state.viewWidth / this.state.width * this.state.height;
+        if (prevProps.centerX !== this.props.centerX || prevProps.centerY !== this.props.centerY) {
+            viewX = this.props.centerX - this.state.viewWidth / 2;
+            viewY = this.props.centerY - viewHeight / 2;
+            this.setState({
+                "viewX": viewX,
+                "viewY": viewY
+            });
+            this.props.onViewResize(Math.floor(viewX - this.state.viewWidth), Math.floor(viewY - viewHeight), Math.ceil(3 * this.state.viewWidth), Math.ceil(3 * viewHeight));
+        } else {
+            viewX = this.state.viewX;
+            viewY = this.state.viewY;
+        }
         let ctx = this.canvas.getContext("2d");
         ctx.fillStyle = "#7F7F7F";
         ctx.fillRect(0, 0, this.state.width, this.state.height);
-        let viewHeight = this.state.viewWidth / this.state.width * this.state.height;
-        for (let x = Math.floor(this.state.viewX); x < this.state.viewX + this.state.viewWidth; ++x) {
-            for (let y = Math.floor(this.state.viewY); y < this.state.viewY + viewHeight; ++y) {
+        for (let x = Math.floor(viewX); x < viewX + this.state.viewWidth; ++x) {
+            for (let y = Math.floor(viewY); y < viewY + viewHeight; ++y) {
                 ctx.fillStyle = colorCodes[this.props.field.get(x, y)];
-                ctx.fillRect((x - this.state.viewX) * this.state.width / this.state.viewWidth, (y - this.state.viewY) * this.state.height / viewHeight, this.state.width / this.state.viewWidth - 1, this.state.height / viewHeight - 1);
+                ctx.fillRect((x - viewX) * this.state.width / this.state.viewWidth, (y - viewY) * this.state.height / viewHeight, this.state.width / this.state.viewWidth - 1, this.state.height / viewHeight - 1);
             }
         }
     }

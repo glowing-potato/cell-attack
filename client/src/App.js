@@ -32,11 +32,15 @@ export default class App extends React.Component {
         this.setState({
             "connected": true,
             "name": name,
-            "socket": socket
+            "socket": socket,
+            "centerX": 32,
+            "centerY": 32,
+            "width": 64,
+            "height": 64,
+            "field": new TwoDimensionalArray(64, 64)
         });
         socket.onmessage = this.handleMessage;
         socket.onclose = this.handleClose;
-        this.handleViewResize(0, 0, 64, 64);
     }
 
     handleMessage(ev) {
@@ -57,7 +61,6 @@ export default class App extends React.Component {
                     "centerY": arr[1],
                     "color": arr2[0] & 0x07
                 });
-                this.handleViewResize(arr[0] - 32, arr[1] - 32, 64, 64);
                 break;
             default:
                 if (ev.data.byteLength < 12) {
@@ -86,7 +89,7 @@ export default class App extends React.Component {
             "topY": topY,
             "width": width,
             "height": height,
-            "field": new TwoDimensionalArray(width, height)
+            "field": new TwoDimensionalArray(width, height, leftX, topY)
         });
         let buf = new ArrayBuffer(12);
         let arr = new Int32Array(buf);
@@ -113,8 +116,8 @@ export default class App extends React.Component {
     render() {
         return this.state.connected ? (
             <div>
-                <GameView name={this.state.name} score={this.state.score} leftX={this.state.leftX}
-                        topY={this.state.topY} width={this.state.width} height={this.state.height}
+                <GameView name={this.state.name} score={this.state.score} centerX={this.state.centerX}
+                        centerY={this.state.centerY} width={this.state.width} height={this.state.height}
                         field={this.state.field} fieldNonce={this.state.fieldNonce} onViewResize={this.handleViewResize} />
             </div>
         ) : (
