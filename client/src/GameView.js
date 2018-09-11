@@ -51,6 +51,7 @@ export default class GameView extends React.Component {
         this.handleMouseUp = this.handleMouseUp.bind(this);
         this.handleMouseOut = this.handleMouseOut.bind(this);
         this.handleMouseMove = this.handleMouseMove.bind(this);
+        this.handleWheel = this.handleWheel.bind(this);
     }
 
     shouldComponentUpdate(nextProps) {
@@ -146,6 +147,14 @@ export default class GameView extends React.Component {
         }
     }
 
+    handleWheel(ev) {
+        let viewWidth = this.state.viewWidth + ev.deltaY;
+        this.setState({
+            "viewWidth": viewWidth
+        });
+        this.handleViewResize(this.state.viewX, this.state.viewY, viewWidth, this.state.width, this.state.height);
+    }
+
     render() {
         return (
             <div className="GameView">
@@ -163,7 +172,7 @@ export default class GameView extends React.Component {
                     </div>
                     <div className="canvas" ref={el => this.canvasDiv = el} onMouseDown={this.handleMouseDown}
                             onMouseMove={this.handleMouseMove} onMouseUp={this.handleMouseUp}
-                            onMouseOut={this.handleMouseOut}>
+                            onMouseOut={this.handleMouseOut} onWheel={this.handleWheel}>
                         <canvas ref={el => this.canvas = el} width={this.state.width} height={this.state.height} />
                     </div>
                 </div>
