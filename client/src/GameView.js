@@ -39,26 +39,33 @@ export default class GameView extends React.Component {
         super(props);
         this.state = {
             "width": 1000,
-            "height": 1000
+            "height": 1000,
+            "viewX": 0,
+            "viewY": 0,
+            "viewWidth": 64,
+            "dragX": null,
+            "dragY": null
         };
         this.handleResize = this.handleResize.bind(this);
+        this.handleMouseDown = this.handleMouseDown.bind(this);
+        this.handleMouseUp = this.handleMouseUp.bind(this);
+        this.handleMouseOut = this.handleMouseOut.bind(this);
+        this.handleMouseMove = this.handleMouseMove.bind(this);
     }
 
     shouldComponentUpdate(nextProps) {
-        return nextProps.fieldNonce !== this.props.fieldNonce || nextProps.width !== this.props.width || nextProps.height !== this.props.height;
+        return nextProps.fieldNonce !== this.props.fieldNonce;
     }
 
-    componentDidUpdate(lastProps) {
-        if (lastProps.width !== this.props.width || lastProps.height !== this.props.height) {
-            this.handleResize();
-        }
+    componentDidUpdate() {
         let ctx = this.canvas.getContext("2d");
         ctx.fillStyle = "#7F7F7F";
         ctx.fillRect(0, 0, this.state.width, this.state.height);
-        for (let x = this.props.leftX; x < this.props.leftX + this.props.width; ++x) {
-            for (let y = this.props.topY; y < this.props.topY + this.props.height; ++y) {
+        let viewHeight = this.state.viewWidth / this.state.width * this.state.height;
+        for (let x = Math.floor(this.state.viewX); x < this.state.viewX + this.state.viewWidth; ++x) {
+            for (let y = Math.floor(this.state.viewY); y < this.state.viewY + viewHeight; ++y) {
                 ctx.fillStyle = colorCodes[this.props.field.get(x, y)];
-                ctx.fillRect(x * this.state.width / this.props.width, y * this.state.height / this.props.height, this.state.width / this.props.width - 1, this.state.height / this.props.height - 1);
+                ctx.fillRect((x - this.state.viewX) * this.state.width / this.state.viewWidth, (y - this.state.viewY) * this.state.height / viewHeight, this.state.width / this.state.viewWidth - 1, this.state.height / viewHeight - 1);
             }
         }
     }
@@ -73,19 +80,47 @@ export default class GameView extends React.Component {
     }
 
     handleResize() {
-        let w = this.canvasDiv.clientWidth - 10;
-        let h = this.canvasDiv.clientHeight - 10;
-        if (this.props.height > 0 && this.props.width > 0) {
-            let aspectX = w / this.props.width;
-            let aspectY = h / this.props.height;
-            if (Math.abs(aspectX - aspectY) > Math.abs(aspectX) / 10) {
-                this.props.onViewResize(this.props.leftX, this.props.topY, this.props.width, Math.ceil(this.props.height * aspectY / aspectX));
-            }
-        }
+        let width = this.canvasDiv.clientWidth - 10;
+        let height = this.canvasDiv.clientHeight - 10;
         this.setState({
-            "width": w,
-            "height": h
+            "width": width,
+            "height": height
         });
+        let viewHeight = this.state.viewWidth / width * height;
+        this.props.onViewResize(Math.floor(this.state.viewX - this.state.viewWidth), Math.floor(this.state.viewY - viewHeight), Math.ceil(3 * this.state.viewWidth), Math.ceil(3 * viewHeight));
+    }
+
+    handleMouseDown(ev) {
+        this.setState({
+            "dragX": ev.clientX,
+            "dragY": ev.clientY
+        });
+    }
+
+    handleMouseUp(ev) {
+        this.setState({
+            "dragX": null,
+            "dragY": null
+        });
+    }
+
+    handleMouseOut(ev) {
+        this.handleMouseUp(ev);
+    }
+
+    handleMouseMove(ev) {
+        if (this.state.dragX !== null && this.state.dragY !== null) {
+            let viewX = this.state.viewX - (ev.clientX - this.state.dragX) * this.state.viewWidth / this.state.width;
+            let viewY = this.state.viewY - (ev.clientY - this.state.dragY) * this.state.viewWidth / this.state.width * this.state.height / this.state.height;
+            this.setState({
+                "dragX": ev.clientX,
+                "dragY": ev.clientY,
+                "viewX": viewX,
+                "viewY": viewY
+            });
+            let viewHeight = this.state.viewWidth / this.state.width * this.state.height;
+            this.props.onViewResize(Math.floor(viewX - this.state.viewWidth), Math.floor(viewY - viewHeight), Math.ceil(3 * this.state.viewWidth), Math.ceil(3 * viewHeight));
+        }
     }
 
     render() {
@@ -103,7 +138,9 @@ export default class GameView extends React.Component {
                     <div className="sidebar">
 
                     </div>
-                    <div className="canvas" ref={el => this.canvasDiv = el}>
+                    <div className="canvas" ref={el => this.canvasDiv = el} onMouseDown={this.handleMouseDown}
+                            onMouseMove={this.handleMouseMove} onMouseUp={this.handleMouseUp}
+                            onMouseOut={this.handleMouseOut}>
                         <canvas ref={el => this.canvas = el} width={this.state.width} height={this.state.height} />
                     </div>
                 </div>
