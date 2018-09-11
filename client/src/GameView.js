@@ -68,7 +68,7 @@ export default class GameView extends React.Component {
                 "viewX": viewX,
                 "viewY": viewY
             });
-            this.props.onViewResize(Math.floor(viewX - this.state.viewWidth), Math.floor(viewY - viewHeight), Math.ceil(3 * this.state.viewWidth), Math.ceil(3 * viewHeight));
+            this.handleViewResize(viewX, viewY, this.state.viewWidth, this.state.width, this.state.height);
         } else {
             viewX = this.state.viewX;
             viewY = this.state.viewY;
@@ -93,6 +93,17 @@ export default class GameView extends React.Component {
         window.removeEventListener("resize", this.handleResize);
     }
 
+    handleViewResize(viewX, viewY, viewWidth, width, height) {
+        let viewHeight = viewWidth / width * height;
+        let marginLowX = viewX - this.props.leftX;
+        let marginLowY = viewY - this.props.topY;
+        let marginHighX = this.props.leftX + this.props.width - viewX - viewWidth;
+        let marginHighY = this.props.topY + this.props.height - viewY - viewHeight;
+        if (marginLowX < viewWidth / 3 || marginLowY < viewHeight / 3 || marginHighX < viewWidth / 3 || marginHighY < viewHeight / 3) {
+            this.props.onViewResize(Math.floor(viewX - viewWidth), Math.floor(viewY - viewHeight), Math.ceil(3 * viewWidth), Math.ceil(3 * viewHeight));
+        }
+    }
+
     handleResize() {
         let width = this.canvasDiv.clientWidth - 10;
         let height = this.canvasDiv.clientHeight - 10;
@@ -100,8 +111,7 @@ export default class GameView extends React.Component {
             "width": width,
             "height": height
         });
-        let viewHeight = this.state.viewWidth / width * height;
-        this.props.onViewResize(Math.floor(this.state.viewX - this.state.viewWidth), Math.floor(this.state.viewY - viewHeight), Math.ceil(3 * this.state.viewWidth), Math.ceil(3 * viewHeight));
+        this.handleViewResize(this.state.viewX, this.state.viewY, this.state.viewWidth, width, height);
     }
 
     handleMouseDown(ev) {
@@ -132,8 +142,7 @@ export default class GameView extends React.Component {
                 "viewX": viewX,
                 "viewY": viewY
             });
-            let viewHeight = this.state.viewWidth / this.state.width * this.state.height;
-            this.props.onViewResize(Math.floor(viewX - this.state.viewWidth), Math.floor(viewY - viewHeight), Math.ceil(3 * this.state.viewWidth), Math.ceil(3 * viewHeight));
+            this.handleViewResize(viewX, viewY, this.state.viewWidth, this.state.width, this.state.height);
         }
     }
 

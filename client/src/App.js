@@ -118,7 +118,8 @@ export default class App extends React.Component {
             <div>
                 <GameView name={this.state.name} score={this.state.score} centerX={this.state.centerX}
                         centerY={this.state.centerY} width={this.state.width} height={this.state.height}
-                        field={this.state.field} fieldNonce={this.state.fieldNonce} onViewResize={this.handleViewResize} />
+                        leftX={this.state.leftX} topY = {this.state.topY} field={this.state.field}
+                        fieldNonce={this.state.fieldNonce} onViewResize={this.handleViewResize} />
             </div>
         ) : (
             <div>
