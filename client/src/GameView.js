@@ -1,7 +1,7 @@
 import React from "react";
 import "./GameView.css";
 
-let colors = [
+const colors = [
     [ 220, 20, 60 ],
     [ 255, 140, 0 ],
     [ 128, 128, 0 ],
@@ -11,6 +11,9 @@ let colors = [
     [ 95, 158, 160 ],
     [ 255, 20, 147 ]
 ];
+const maxWidth = 200;
+const minWidth = 1;
+
 let colorCodes = [];
 for (let c = 0; c < 8; ++c) {
     for (let v = 0; v < 32; ++v) {
@@ -149,6 +152,17 @@ export default class GameView extends React.Component {
 
     handleWheel(ev) {
         let viewWidth = this.state.viewWidth + ev.deltaY;
+        if (viewWidth < minWidth) {
+            if (this.state.viewWidth === minWidth) {
+                return;
+            }
+            viewWidth = minWidth;
+        } else if (viewWidth > maxWidth) {
+            if (this.state.viewWidth === maxWidth) {
+                return;
+            }
+            viewWidth = maxWidth;
+        }
         let bounds = this.canvasDiv.getClientRects()[0];
         let scale = viewWidth / this.state.viewWidth;
         let invScale = 1 - scale;
