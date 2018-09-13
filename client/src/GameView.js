@@ -149,10 +149,18 @@ export default class GameView extends React.Component {
 
     handleWheel(ev) {
         let viewWidth = this.state.viewWidth + ev.deltaY;
+        let bounds = this.canvasDiv.getClientRects()[0];
+        let scale = viewWidth / this.state.viewWidth;
+        let invScale = 1 - scale;
+        let viewX = this.state.viewX + invScale * (ev.clientX - bounds.x) / this.state.width * this.state.viewWidth;
+        let viewHeight = this.state.viewWidth / this.state.width * this.state.height;
+        let viewY = this.state.viewY + invScale * (ev.clientY - bounds.y) / this.state.height * viewHeight;
         this.setState({
-            "viewWidth": viewWidth
+            "viewWidth": viewWidth,
+            "viewX": viewX,
+            "viewY": viewY
         });
-        this.handleViewResize(this.state.viewX, this.state.viewY, viewWidth, this.state.width, this.state.height);
+        this.handleViewResize(viewX, viewY, viewWidth, this.state.width, this.state.height);
     }
 
     render() {
