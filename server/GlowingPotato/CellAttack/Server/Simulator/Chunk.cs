@@ -7,9 +7,10 @@ namespace GlowingPotato.CellAttack.Server.Simulator
     public class Chunk
     {
 
-        public const int SIZE = 0x100;
+        public const int SIZE = 64;
         public const int COLOR_MASK = 0x07;
         public const int TIMER_MASK = 0xF8;
+        public const int DEFAULT_CELL = 0xF8;
 
         public static readonly int[] COLORS = new int[] { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07 };
 
@@ -40,15 +41,15 @@ namespace GlowingPotato.CellAttack.Server.Simulator
             bool result = false;
 
             // simulate main area
-            for (int y = 1; y < SIZE - 1; ++y)
+            for (int y = 0; y < SIZE; ++y)
             {
-                for (int x = 1; x < SIZE - 1; ++x)
+                for (int x = 0; x < SIZE; ++x)
                 {
                     // get cell
-                    int cell = GetCellFromLocalCoords(x, y, oldChunk);
+                    int cell = GetCellFromLocalCoordsOld(x, y, n, ne, e, se, s, sw, w, nw);
 
                     // figure out color counts of neigbors
-                    int[] colorCounts = GetNeighborColorCounts(x, y, oldChunk);
+                    int[] colorCounts = GetNeighborColorCounts(x, y, n, ne, e, se, s, sw, w, nw);
 
                     int total = colorCounts.Sum();
                     int maxIndex = IndexOfMax(colorCounts);
@@ -79,6 +80,7 @@ namespace GlowingPotato.CellAttack.Server.Simulator
                             // exactly 3 neighbors, create the cell
                             SetCellFromLocalCoords(x, y, newChunk, COLORS[maxIndex]);
                             alive = true;
+                            result = true;
                         }
                     }
 
@@ -115,6 +117,95 @@ namespace GlowingPotato.CellAttack.Server.Simulator
             return maxIndex;
         }
 
+        public void CheckEdges(out bool n, out bool ne, out bool e, out bool se, out bool s, out bool sw, out bool w, out bool nw)
+        {
+            n = false;
+            ne = false;
+            e = false;
+            se = false;
+            s = false;
+            sw = false;
+            w = false;
+            nw = false;
+
+            int count1 = 0;
+            int color1 = 0;
+            int count2 = 0;
+            int color2 = 0;
+
+            // check north and south edge
+            for (int i = 0; i < SIZE; i++)
+            {
+                int cell1 = GetCellFromLocalCoords(i, 0, oldChunk);
+                if ((cell1 & TIMER_MASK) == 0 && color1 == (cell1 & COLOR_MASK))
+                {
+                    count1++;
+                } else
+                {
+                    count1 = 0;
+                }
+                if (count1 == 2)
+                {
+                    n = true;
+                }
+                color1 = cell1;
+
+                int cell2 = GetCellFromLocalCoords(i, SIZE - 1, oldChunk);
+                if ((cell2 & TIMER_MASK) == 0 && color2 == (cell2 & COLOR_MASK))
+                {
+                    count2++;
+                }
+                else
+                {
+                    count2 = 0;
+                }
+                if (count2 == 2)
+                {
+                    s = true;
+                }
+                color2 = cell2;
+            }
+            color1 = 0;
+            count1 = 0;
+            color2 = 0;
+            count2 = 0;
+
+            // check east and west edge
+            for (int i = 0; i < SIZE; i++)
+            {
+                int cell1 = GetCellFromLocalCoords(0, i, oldChunk);
+                if ((cell1 & TIMER_MASK) == 0 && color1 == (cell1 & COLOR_MASK))
+                {
+                    count1++;
+                }
+                else
+                {
+                    count1 = 0;
+                }
+                if (count1 == 2)
+                {
+                    w = true;
+                }
+                color1 = cell1 & COLOR_MASK;
+
+                int cell2 = GetCellFromLocalCoords(SIZE - 1, i, oldChunk);
+                if ((cell2 & TIMER_MASK) == 0 && color2 == (cell2 & COLOR_MASK))
+                {
+                    count2++;
+                }
+                else
+                {
+                    count2 = 0;
+                }
+                if (count2 == 2)
+                {
+                    e = true;
+                }
+                color2 = cell2 & COLOR_MASK;
+            }
+            
+        }
+
         public void LoadThing(byte[] thing, int left, int top, int width, int height, byte defaultCell)
         {
             for (int y = 0; y < height; ++y)
@@ -136,17 +227,17 @@ namespace GlowingPotato.CellAttack.Server.Simulator
             return newChunk;
         }
 
-        public int[] GetNeighborColorCounts(int x, int y, byte[] array)
+        public int[] GetNeighborColorCounts(int x, int y, Chunk n, Chunk ne, Chunk e, Chunk se, Chunk s, Chunk sw, Chunk w, Chunk nw)
         {
             int[] neighbors = new int[] {
-                GetCellFromLocalCoords(x + 1, y, array),
-                GetCellFromLocalCoords(x + 1, y - 1, array),
-                GetCellFromLocalCoords(x, y - 1, array),
-                GetCellFromLocalCoords(x - 1, y - 1, array),
-                GetCellFromLocalCoords(x - 1, y, array),
-                GetCellFromLocalCoords(x - 1, y + 1, array),
-                GetCellFromLocalCoords(x, y + 1, array),
-                GetCellFromLocalCoords(x + 1, y + 1, array)
+                GetCellFromLocalCoordsOld(x + 1, y, n, ne, e, se, s, sw, w, nw),
+                GetCellFromLocalCoordsOld(x + 1, y - 1, n, ne, e, se, s, sw, w, nw),
+                GetCellFromLocalCoordsOld(x, y - 1, n, ne, e, se, s, sw, w, nw),
+                GetCellFromLocalCoordsOld(x - 1, y - 1, n, ne, e, se, s, sw, w, nw),
+                GetCellFromLocalCoordsOld(x - 1, y, n, ne, e, se, s, sw, w, nw),
+                GetCellFromLocalCoordsOld(x - 1, y + 1, n, ne, e, se, s, sw, w, nw),
+                GetCellFromLocalCoordsOld(x, y + 1, n, ne, e, se, s, sw, w, nw),
+                GetCellFromLocalCoordsOld(x + 1, y + 1, n, ne, e, se, s, sw, w, nw)
             };
 
             int[] result = new int[8];
@@ -160,8 +251,58 @@ namespace GlowingPotato.CellAttack.Server.Simulator
 
         }
 
+        public int GetCellFromLocalCoordsOld(int x, int y, Chunk n, Chunk ne, Chunk e, Chunk se, Chunk s, Chunk sw, Chunk w, Chunk nw)
+        {
+            if (y >= 0 && y < SIZE)
+            {
+                if (x >= 0 && x < SIZE)
+                {
+                    return oldChunk[y * SIZE + x];
+                }
+                else if (x < 0)
+                {
+                    return w == null ? DEFAULT_CELL : w.oldChunk[y * SIZE + (x + SIZE)];
+                }
+                else if (x >= SIZE)
+                {
+                    return e == null ? DEFAULT_CELL : e.oldChunk[y * SIZE + (x - SIZE)];
+                }
+            } else if (y < 0)
+            {
+                if (x >= 0 && x < SIZE)
+                {
+                    return n == null ? DEFAULT_CELL : n.oldChunk[(y + SIZE) * SIZE + x];
+                }
+                else if (x < 0)
+                {
+                    return nw == null ? DEFAULT_CELL : nw.oldChunk[(y + SIZE) * SIZE + (x + SIZE)];
+                }
+                else if (x >= SIZE)
+                {
+                    return ne == null ? DEFAULT_CELL : ne.oldChunk[(y + SIZE) * SIZE + (x - SIZE)];
+                }
+            } else if (y >= SIZE)
+            {
+                if (x >= 0 && x < SIZE)
+                {
+                    return s == null ? DEFAULT_CELL : s.oldChunk[(y - SIZE) * SIZE + x];
+                }
+                else if (x < 0)
+                {
+                    return sw == null ? DEFAULT_CELL : sw.oldChunk[(y - SIZE) * SIZE + (x + SIZE)];
+                }
+                else if (x >= SIZE)
+                {
+                    return se == null ? DEFAULT_CELL : se.oldChunk[(y - SIZE) * SIZE + (x - SIZE)];
+                }
+            }
+            return 0;
+            
+        }
+
         public int GetCellFromLocalCoords(int x, int y, byte[] array)
         {
+
             if (x >= 0 && x < SIZE && y >= 0 && y < SIZE)
             {
                 return array[y * SIZE + x];
