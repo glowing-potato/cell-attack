@@ -57,8 +57,9 @@ export default class GameView extends React.Component {
         this.handleWheel = this.handleWheel.bind(this);
     }
 
-    shouldComponentUpdate(nextProps) {
-        return nextProps.fieldNonce !== this.props.fieldNonce || nextProps.centerX !== this.props.centerX || nextProps.centerY !== this.props.centerY;
+    shouldComponentUpdate(nextProps, nextState) {
+        return nextProps.fieldNonce !== this.props.fieldNonce || nextProps.centerX !== this.props.centerX || nextProps.centerY !== this.props.centerY ||
+            nextState.viewX !== this.state.viewX || nextState.viewY !== this.state.viewY;
     }
 
     componentDidUpdate(prevProps) {
