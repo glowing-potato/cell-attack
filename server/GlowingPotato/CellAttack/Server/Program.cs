@@ -7,6 +7,7 @@ using GlowingPotato.CellAttack.Server.Simulator;
 using GlowingPotato.CellAttack.Server.Net;
 using System.Threading;
 using System.Runtime;
+using System.Linq;
 
 namespace GlowingPotato.CellAttack.Server
 {
@@ -24,8 +25,7 @@ namespace GlowingPotato.CellAttack.Server
                                                                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
                                                              };
         public const int PLAYER_COUNT = 1;
-
-        private static Action<Task> simTask;
+        private static int simSpeed = 100;
 
         static void Main(string[] args)
         {
@@ -33,10 +33,10 @@ namespace GlowingPotato.CellAttack.Server
 
             // create world
             World w = new World();
+
             // ---------- TESTING PURPOSES ONLY ----------
             w.AddChunk(new ChunkPos(0, 0));
             w.GetChunk(new ChunkPos(0, 0)).LoadThing(gliderGun, 5, 5, 37, 9, 0x01);
-            //w.GetChunk(new ChunkPos(0, 0)).LoadThing(new byte[] { 1, 1, 1, 1 }, 31, 31, 2, 2, 0x07);
             // ---------- --------------------- ----------
 
             // create server
@@ -65,7 +65,7 @@ namespace GlowingPotato.CellAttack.Server
                 };
                 socket.OnClose = () =>
                 {
-                    Console.WriteLine("Connection closed.");
+                    Console.WriteLine("Connection to client closed.");
                     clients.Remove(proxy);
                 };
                 socket.OnMessage = message =>
@@ -73,15 +73,16 @@ namespace GlowingPotato.CellAttack.Server
                     // get name packet
                     if (!names.Contains(message))
                     {
+                        Console.WriteLine("Client connect packet recieved.");
                         proxy.SendConnectPacket(0);
                         names.Add(message);
+                        clients.Add(proxy);
                     }
                     else
                     {
                         proxy.SendConnectPacket(128);
                         socket.Close();
                     }
-                    clients.Add(proxy);
 
                     // if all players connected, start the game
                     if (clients.Count == PLAYER_COUNT && !started)
@@ -93,7 +94,7 @@ namespace GlowingPotato.CellAttack.Server
                         }
 
                         // start simulation
-                        timer.Change(0, 100);
+                        timer.Change(0, simSpeed);
                         started = true;
                     }
                 };
@@ -108,14 +109,16 @@ namespace GlowingPotato.CellAttack.Server
             });
 
             // create timer to simulate world
-            int simulations = 0;
-            int timeSum = 0;
+            int[] lastTime = new int[10];
+            int timeIndex = 0;
             timer = new System.Threading.Timer((a) =>
             {
                 DateTime start = DateTime.Now;
                 Task.WaitAll(Task.Run(() =>
                 {
-                    foreach (ChunkPos pos in w.GetChunks().Keys)
+                    ChunkPos[] chunks = new ChunkPos[w.GetChunkCount()];
+                    w.GetChunks().Keys.CopyTo(chunks, 0);
+                    foreach (ChunkPos pos in chunks)
                     {
                         foreach (IClientProxy s in clients)
                         {
@@ -127,21 +130,67 @@ namespace GlowingPotato.CellAttack.Server
                     w.Simulate();
                     DateTime time2 = System.DateTime.Now;
 
-                    timeSum += (time2 - time1).Milliseconds;
+                    lastTime[timeIndex] = (time2 - time1).Milliseconds;
 
-                    if (simulations++ == 50)
+                    if (++timeIndex > lastTime.Length - 1)
                     {
-                        DateTime gcstart = DateTime.Now;
-                        GC.Collect();
-                        DateTime gcend = DateTime.Now;
-                        Console.WriteLine(String.Format("Simulated {0} chunks {1} times. Took on average {2}ms.", w.GetChunkCount(), simulations - 1, (double)timeSum / simulations));
-                        simulations = 0;
-                        timeSum = 0;
+                        timeIndex = 0;
                     }
                 }));
-            }, null, -1, 100);
+            }, null, -1, simSpeed);
 
-            Console.ReadKey();
+            string[] cmd = null;
+            while ((cmd = Console.ReadLine().Split(" "))[0] != "/exit")
+            {
+                switch (cmd[0])
+                {
+                    case "/forcestart":
+                        Console.WriteLine("Starting game forcibly.");
+                        timer.Change(0, simSpeed);
+                        started = true;
+                        break;
+                    case "/help":
+                        Console.WriteLine("Commands: /exit, /forcestart, /help, /loaddemo, /players, /simspeed, /simstats");
+                        break;
+                    case "/loaddemo":
+                        w.GetChunks().Clear();
+                        w.AddChunk(new ChunkPos(0, 0));
+                        w.GetChunk(new ChunkPos(0, 0)).LoadThing(gliderGun, 5, 5, 37, 9, 0x01);
+                        Console.WriteLine("Loaded demo simulation.");
+                        break;
+                    case "/players":
+                        Console.WriteLine("Currently connected players:");
+                        foreach (string name in names)
+                        {
+                            Console.WriteLine(name);
+                        }
+                        break;
+                    case "/simspeed":
+                        if (cmd.Length > 1)
+                        {
+                            try
+                            {
+                                simSpeed = Convert.ToInt32(cmd[1]);
+                                Console.WriteLine("Setting simulation speed to " + simSpeed + "ms");
+                                timer.Change(0, simSpeed);
+                            } catch (FormatException)
+                            {
+                                Console.WriteLine("Invalid parameter for the simulation speed.");
+                            }
+                        } else
+                        {
+                            Console.WriteLine("Simulation speed: " + simSpeed + "ms");
+                        }
+                        break;
+                    case "/simstats":
+                        int sum = lastTime.Sum();
+                        Console.WriteLine(String.Format("Last {0} simulations with {1} chunks took on average {2}ms.", lastTime.Length, w.GetChunkCount(), (double)sum / lastTime.Length));
+                        break;
+                    default:
+                        Console.WriteLine("Invalid command. Type \"/help\" for a list of commands.");
+                        break;
+                }
+            }
 
         }
 
