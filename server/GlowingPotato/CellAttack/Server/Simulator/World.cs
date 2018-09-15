@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace GlowingPotato.CellAttack.Server.Simulator
 {
@@ -63,48 +65,55 @@ namespace GlowingPotato.CellAttack.Server.Simulator
 
             keys = new ChunkPos[map.Count];
             map.Keys.CopyTo(keys, 0);
-            foreach (ChunkPos pos in keys)
+
+            Task.WaitAll(map.Select((KeyValuePair<ChunkPos, Chunk> pair) =>
             {
-                // get chunk and neighbors
-                Chunk c = map[pos];
-                Chunk n = null, ne = null, e = null, se = null, s = null, sw = null, w = null, nw = null;
-                if (map.ContainsKey(pos.North()))
-                {
-                    n = map[pos.North()];
-                }
-                if (map.ContainsKey(pos.North().East()))
-                {
-                    ne = map[pos.North().East()];
-                }
-                if (map.ContainsKey(pos.East()))
-                {
-                    e = map[pos.East()];
-                }
-                if (map.ContainsKey(pos.South().East()))
-                {
-                    se = map[pos.South().East()];
-                }
-                if (map.ContainsKey(pos.South()))
-                {
-                    s = map[pos.South()];
-                }
-                if (map.ContainsKey(pos.South().West()))
-                {
-                    sw = map[pos.South().West()];
-                }
-                if (map.ContainsKey(pos.West()))
-                {
-                    w = map[pos.West()];
-                }
-                if (map.ContainsKey(pos.North().West()))
-                {
-                    nw = map[pos.North().West()];
-                }
+                ChunkPos pos = pair.Key;
 
-                // simulate chunk
-                deleteMap[pos] = !c.Simulate(n, ne, e, se, s, sw, w, nw, null);
-            }
+                return Task.Run(() =>
+                {
 
+                    // get chunk and neighbors
+                    Chunk c = map[pos];
+                    Chunk n = null, ne = null, e = null, se = null, s = null, sw = null, w = null, nw = null;
+                    if (map.ContainsKey(pos.North()))
+                    {
+                        n = map[pos.North()];
+                    }
+                    if (map.ContainsKey(pos.North().East()))
+                    {
+                        ne = map[pos.North().East()];
+                    }
+                    if (map.ContainsKey(pos.East()))
+                    {
+                        e = map[pos.East()];
+                    }
+                    if (map.ContainsKey(pos.South().East()))
+                    {
+                        se = map[pos.South().East()];
+                    }
+                    if (map.ContainsKey(pos.South()))
+                    {
+                        s = map[pos.South()];
+                    }
+                    if (map.ContainsKey(pos.South().West()))
+                    {
+                        sw = map[pos.South().West()];
+                    }
+                    if (map.ContainsKey(pos.West()))
+                    {
+                        w = map[pos.West()];
+                    }
+                    if (map.ContainsKey(pos.North().West()))
+                    {
+                        nw = map[pos.North().West()];
+                    }
+
+                    // simulate chunk
+                    deleteMap[pos] = !c.Simulate(n, ne, e, se, s, sw, w, nw, null);
+                });
+            }).ToArray());
+            
             keys = new ChunkPos[map.Count];
             map.Keys.CopyTo(keys, 0);
             foreach (ChunkPos pos in keys)
@@ -138,11 +147,9 @@ namespace GlowingPotato.CellAttack.Server.Simulator
             return map.Count;
         }
 
-        public Chunk[] GetChunks()
+        public Dictionary<ChunkPos, Chunk> GetChunks()
         {
-            Chunk[] chunks = new Chunk[map.Count];
-            map.Values.CopyTo(chunks, 0);
-            return chunks;
+            return map;
         }
 
     }
