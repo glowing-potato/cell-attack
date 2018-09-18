@@ -1,17 +1,25 @@
 import React from "react";
 import "./ConnectPage.css";
 
+const errorCodes = {
+    128: "Username already taken!",
+    129: "Game has already started!"
+};
+
 export default class ConnectPage extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
             "address": localStorage.connect_address || "",
             "name": localStorage.connect_name || "",
-            "loading": false
+            "loading": false,
+            "errorCode": null,
+            "errorClass": "pristine"
         };
         this.handleAddressChange = this.handleAddressChange.bind(this);
         this.handleNameChange = this.handleNameChange.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
+        this.handleDismiss = this.handleDismiss.bind(this);
     }
 
     handleAddressChange(ev) {
@@ -45,7 +53,9 @@ export default class ConnectPage extends React.Component {
                     console.error("Invalid packet received!");
                 } else if (arr[0] & 0x80) {
                     this.setState({
-                        "loading": false
+                        "loading": false,
+                        "errorCode": arr[0],
+                        "errorClass": ""
                     });
                     socket.close();
                 } else if (arr[0] === 1) {
@@ -55,6 +65,12 @@ export default class ConnectPage extends React.Component {
                 }
             };
         }
+    }
+
+    handleDismiss() {
+        this.setState({
+            "errorCode": null
+        });
     }
 
     render() {
@@ -91,6 +107,9 @@ export default class ConnectPage extends React.Component {
                     <div className="padding" />
                 </div>
                 <div className="padding" />
+                <div className={`error ${this.state.errorCode ? "active" : this.state.errorClass}`} onClick={this.handleDismiss}>
+                    {errorCodes[this.state.errorCode]}
+                </div>
             </div>
         );
     }
