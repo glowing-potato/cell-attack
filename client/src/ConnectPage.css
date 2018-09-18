@@ -70,13 +70,34 @@
     overflow: hidden;
 }
 .ConnectPage .progress div {
-    background-color: #3F7F3F;
     height: 100%;
     width: 40%;
     border-radius: 0 5px 0 5px;
     animation: connect-progress 1s infinite linear;
     position: absolute;
     top: 0;
+}
+.ConnectPage .progress div.connected {
+    background-color: #AFAF00;
+}
+.ConnectPage .progress div.disconnected {
+    background-color: #3F7F3F;
+}
+.ConnectPage .error {
+    position: fixed;
+    top: 20px;
+    background-color: #AFAFAF;
+    padding: 20px;
+    animation: error-slide-out 0.5s ease-in;
+    right: -100vw;
+}
+.ConnectPage .error.pristine {
+    animation: none;
+}
+.ConnectPage .error.active {
+    animation: error-slide-in 0.5s ease-out;
+    left: auto;
+    right: 0;
 }
 
 @keyframes connect-progress {
@@ -85,5 +106,23 @@
     }
     to {
         left: 100%;
+    }
+}
+
+@keyframes error-slide-in {
+    from {
+        right: -100vw;
+    }
+    to {
+        right: 0;
+    }
+}
+
+@keyframes error-slide-out {
+    from {
+        right: 0;
+    }
+    to {
+        right: -100vw;
     }
 }
