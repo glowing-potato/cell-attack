@@ -8,6 +8,8 @@ using GlowingPotato.CellAttack.Server.Net;
 using System.Threading;
 using System.Runtime;
 using System.Linq;
+using System.Net;
+using System.Net.Sockets;
 
 namespace GlowingPotato.CellAttack.Server
 {
@@ -46,6 +48,9 @@ namespace GlowingPotato.CellAttack.Server
             System.Threading.Timer timer = null;
             bool started = false;
 
+            Socket serverSocket = new TcpListener(IPAddress.Any, 8181).Server;
+            serverSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+            server.ListenerSocket = new SocketWrapper(serverSocket);
             server.SupportedSubProtocols = new string[] { "cell-attack-v0" };
             server.Start(socket =>
             {
@@ -118,13 +123,15 @@ namespace GlowingPotato.CellAttack.Server
                 {
                     ChunkPos[] chunks = new ChunkPos[w.GetChunkCount()];
                     w.GetChunks().Keys.CopyTo(chunks, 0);
-                    foreach (ChunkPos pos in chunks)
+
+                    foreach (IClientProxy s in clients)
                     {
-                        foreach (IClientProxy s in clients)
+                        foreach (ChunkPos pos in chunks)
                         {
                             s.SendFieldDataPacket((int)(pos.X * Chunk.SIZE), (int)(pos.Y * Chunk.SIZE), Chunk.SIZE, Chunk.SIZE, w.GetChunks()[pos].GetOldBackingArray());
                         }
                     }
+
 
                     DateTime time1 = System.DateTime.Now;
                     w.Simulate();
@@ -173,11 +180,13 @@ namespace GlowingPotato.CellAttack.Server
                                 simSpeed = Convert.ToInt32(cmd[1]);
                                 Console.WriteLine("Setting simulation speed to " + simSpeed + "ms");
                                 timer.Change(0, simSpeed);
-                            } catch (FormatException)
+                            }
+                            catch (FormatException)
                             {
                                 Console.WriteLine("Invalid parameter for the simulation speed.");
                             }
-                        } else
+                        }
+                        else
                         {
                             Console.WriteLine("Simulation speed: " + simSpeed + "ms");
                         }
