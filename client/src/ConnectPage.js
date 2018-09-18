@@ -2,6 +2,8 @@ import React from "react";
 import "./ConnectPage.css";
 
 const errorCodes = {
+    1: "Server crashed!",
+    2: "Network error occurred!",
     128: "Username already taken!",
     129: "Game has already started!"
 };
@@ -15,13 +17,16 @@ export default class ConnectPage extends React.Component {
             "name": localStorage.connect_name || "",
             "loading": false,
             "connected": false,
-            "errorCode": null,
-            "errorClass": "pristine"
+            "errorCode": props.errorCode,
+            "errorClass": props.errorCode ? "" : "pristine"
         };
         this.handleAddressChange = this.handleAddressChange.bind(this);
         this.handleNameChange = this.handleNameChange.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
         this.handleDismiss = this.handleDismiss.bind(this);
+        if (props.errorCode) {
+            this.errorTimerId = setTimeout(this.handleDismiss, errorTimeout);
+        }
     }
 
     handleAddressChange(ev) {

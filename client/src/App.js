@@ -20,12 +20,14 @@ export default class App extends React.Component {
             "height": 0,
             "socket": null,
             "field": new TwoDimensionalArray(1, 1),
-            "fieldNonce": 0
+            "fieldNonce": 0,
+            "errorCode": null
         };
         this.handleConnect = this.handleConnect.bind(this);
         this.handleMessage = this.handleMessage.bind(this);
         this.handleClose = this.handleClose.bind(this);
         this.handleViewResize = this.handleViewResize.bind(this);
+        this.handleError = this.handleError.bind(this);
     }
 
     handleConnect(socket, name) {
@@ -41,6 +43,7 @@ export default class App extends React.Component {
         });
         socket.onmessage = this.handleMessage;
         socket.onclose = this.handleClose;
+        socket.onerror = this.handleError;
     }
 
     handleMessage(ev) {
@@ -79,7 +82,16 @@ export default class App extends React.Component {
 
     handleClose() {
         this.setState({
-            "connected": false
+            "connected": false,
+            "errorCode": 1
+        });
+    }
+
+    handleError(ev) {
+        console.error(ev);
+        this.setState({
+            "connected": false,
+            "errorCode": 2
         });
     }
 
@@ -123,7 +135,7 @@ export default class App extends React.Component {
             </div>
         ) : (
             <div>
-                <ConnectPage onConnect={this.handleConnect} />
+                <ConnectPage onConnect={this.handleConnect} errorCode={this.state.errorCode} />
             </div>
         );
     }
