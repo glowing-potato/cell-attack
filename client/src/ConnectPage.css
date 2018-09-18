@@ -70,13 +70,18 @@
     overflow: hidden;
 }
 .ConnectPage .progress div {
-    background-color: #3F7F3F;
     height: 100%;
     width: 40%;
     border-radius: 0 5px 0 5px;
     animation: connect-progress 1s infinite linear;
     position: absolute;
     top: 0;
+}
+.ConnectPage .progress div.connected {
+    background-color: #AFAF00;
+}
+.ConnectPage .progress div.disconnected {
+    background-color: #3F7F3F;
 }
 .ConnectPage .error {
     position: fixed;

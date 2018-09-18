@@ -14,6 +14,7 @@ export default class ConnectPage extends React.Component {
             "address": localStorage.connect_address || "",
             "name": localStorage.connect_name || "",
             "loading": false,
+            "connected": false,
             "errorCode": null,
             "errorClass": "pristine"
         };
@@ -59,6 +60,10 @@ export default class ConnectPage extends React.Component {
                         "errorClass": ""
                     });
                     socket.close();
+                } else if (arr[0] === 0) {
+                    this.setState({
+                        "connected": true
+                    });
                 } else if (arr[0] === 1) {
                     if (this.props.onConnect) {
                         this.props.onConnect(socket, this.state.name);
@@ -122,7 +127,7 @@ export default class ConnectPage extends React.Component {
                         </form>
                         {this.state.loading && (
                             <div className="progress">
-                                <div />
+                                <div className={this.state.connected ? "connected" : "disconnected"} />
                             </div>
                         )}
                     </div>
