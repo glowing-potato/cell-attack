@@ -19,16 +19,36 @@ export default class TwoDimensionalArray {
     }
 
     setRange(leftX, topY, width, height, buffer) {
-        leftX -= this.xOff;
-        topY -= this.yOff;
+        let minArrayY = topY - this.yOff;
+        let maxArrayY = topY + height - this.yOff;
+        let minArrayX = leftX - this.xOff;
+        let maxArrayX = leftX + width - this.xOff;
         let i = 0;
-        for (let y = topY; y < topY + height; ++y) {
-            for (let x = leftX; x < leftX + width; ++x) {
-                if (x >= 0 && x < this.array[0].length && y >= 0 && y < this.array.length) {
-                    this.array[y][x] = buffer[i];
+        let y = minArrayY;
+        if (y < 0) {
+            i -= y * width;
+            y = 0;
+        }
+        for (; y < maxArrayY; ++y) {
+            if (y < this.array.length) {
+                let j = i;
+                let x = minArrayX;
+                if (x < 0) {
+                    j -= x;
+                    x = 0;
                 }
-                ++i;
+                for (; x < maxArrayX; ++x) {
+                    if (x < this.array[0].length) {
+                        this.array[y][x] = buffer[j];
+                    } else {
+                        break;
+                    }
+                    ++j;
+                }
+            } else {
+                break;
             }
+            i += width;
         }
     }
 }
