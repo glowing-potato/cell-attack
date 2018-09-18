@@ -4,6 +4,7 @@ import "./ConnectPage.css";
 const errorCodes = {
     1: "Server crashed!",
     2: "Network error occurred!",
+    3: "Unable to connect to server!",
     128: "Username already taken!",
     129: "Game has already started!"
 };
@@ -74,6 +75,21 @@ export default class ConnectPage extends React.Component {
                         this.props.onConnect(socket, this.state.name);
                     }
                 }
+            };
+            socket.onclose = () => {
+                this.setState({
+                    "loading": false,
+                    "errorCode": 3,
+                    "errorClass": ""
+                });
+            };
+            socket.onerror = ev => {
+                console.error(ev);
+                this.setState({
+                    "loading": false,
+                    "errorCode": 2,
+                    "errorClass": ""
+                });
             };
         }
     }
