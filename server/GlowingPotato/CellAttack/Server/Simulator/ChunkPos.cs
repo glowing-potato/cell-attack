@@ -43,6 +43,11 @@ namespace GlowingPotato.CellAttack.Server.Simulator
             return false;
         }
 
+        public override string ToString()
+        {
+            return "ChunkPos[x=" + X + ",y=" + Y + "]";
+        }
+
         public override int GetHashCode()
         {
             int prime = 31;
