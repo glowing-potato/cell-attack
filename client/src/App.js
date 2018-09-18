@@ -68,7 +68,7 @@ export default class App extends React.Component {
                 } else {
                     arr = new Int32Array(ev.data, 0, 8);
                     arr2 = new Uint16Array(ev.data, 8, 4);
-                    this.state.field.setRange(arr[0] - this.state.leftX, arr[1] - this.state.topY, arr2[0], arr2[1], new Uint8Array(ev.data, 12));
+                    this.state.field.setRange(arr[0], arr[1], arr2[0], arr2[1], new Uint8Array(ev.data, 12));
                     this.setState({
                         "fieldNonce": this.state.fieldNonce + 1
                     });
