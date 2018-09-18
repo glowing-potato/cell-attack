@@ -5,6 +5,7 @@ const errorCodes = {
     128: "Username already taken!",
     129: "Game has already started!"
 };
+const errorTimeout = 5000;
 
 export default class ConnectPage extends React.Component {
     constructor(props) {
@@ -71,6 +72,27 @@ export default class ConnectPage extends React.Component {
         this.setState({
             "errorCode": null
         });
+    }
+
+    componentDidMount() {
+        if (this.state.errorCode) {
+            this.errorTimerId = setTimeout(this.handleDismiss, errorTimeout);
+        }
+    }
+
+    componentWillUnmount() {
+        if (this.errorTimerId) {
+            clearTimeout(this.errorTimerId);
+        }
+    }
+
+    componentDidUpdate(prevProps, prevState) {
+        if (this.state.errorCode !== prevState.errorCode) {
+            if (this.errorTimerId) {
+                clearTimeout(this.errorTimerId);
+            }
+            this.errorTimerId = setTimeout(this.handleDismiss, errorTimeout);
+        }
     }
 
     render() {
