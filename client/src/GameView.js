@@ -152,7 +152,7 @@ export default class GameView extends React.Component {
     }
 
     handleWheel(ev) {
-        let viewWidth = this.state.viewWidth + ev.deltaY;
+        let viewWidth = this.state.viewWidth * (ev.deltaY > 0 ? 4 / 3 : 3 / 4);
         if (viewWidth < minWidth) {
             if (this.state.viewWidth === minWidth) {
                 return;
