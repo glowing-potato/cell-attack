@@ -18,12 +18,12 @@ export default class TwoDimensionalArray {
         }
     }
 
-    setRange(leftX, topY, width, height, buffer) {
+    setRange(leftX, topY, width, height, buffer, off) {
         let minArrayY = topY - this.yOff;
         let maxArrayY = topY + height - this.yOff;
         let minArrayX = leftX - this.xOff;
         let maxArrayX = leftX + width - this.xOff;
-        let i = 0;
+        let i = off;
         let y = minArrayY;
         if (y < 0) {
             i -= y * width;
@@ -37,13 +37,10 @@ export default class TwoDimensionalArray {
                     j -= x;
                     x = 0;
                 }
-                for (; x < maxArrayX; ++x) {
-                    if (x < this.array[0].length) {
-                        this.array[y][x] = buffer[j];
-                    } else {
-                        break;
-                    }
-                    ++j;
+                let count = maxArrayX - x;
+                if (count > 0) {
+                    let src = new Uint8Array(buffer, j, count);
+                    this.array[y].set(src, x);
                 }
             } else {
                 break;
