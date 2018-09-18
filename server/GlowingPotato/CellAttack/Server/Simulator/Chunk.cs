@@ -117,41 +117,38 @@ namespace GlowingPotato.CellAttack.Server.Simulator
             return maxIndex;
         }
 
-        public void CheckEdges(out bool n, out bool ne, out bool e, out bool se, out bool s, out bool sw, out bool w, out bool nw)
+        public void CheckEdges(Chunk n, Chunk ne, Chunk e, Chunk se, Chunk s, Chunk sw, Chunk w, Chunk nw, out bool cn, out bool cne, out bool ce, out bool cse, out bool cs, out bool csw, out bool cw, out bool cnw)
         {
-            n = false;
-            ne = false;
-            e = false;
-            se = false;
-            s = false;
-            sw = false;
-            w = false;
-            nw = false;
+            cn = false;
+            cne = false;
+            ce = false;
+            cse = false;
+            cs = false;
+            csw = false;
+            cw = false;
+            cnw = false;
 
             int count1 = 0;
-            int color1 = 0;
             int count2 = 0;
-            int color2 = 0;
 
             // check north and south edge
-            for (int i = 0; i < SIZE; i++)
+            for (int i = -1; i <= SIZE; i++)
             {
-                int cell1 = GetCellFromLocalCoords(i, 0, oldChunk);
-                if ((cell1 & TIMER_MASK) == 0 && color1 == (cell1 & COLOR_MASK))
+                int cell1 = GetCellFromLocalCoordsOld(i, 0, n, ne, e, se, s, sw, w, nw);
+                if ((cell1 & TIMER_MASK) == 0)
                 {
                     count1++;
                 } else
                 {
                     count1 = 0;
                 }
-                if (count1 == 2)
+                if (count1 == 3)
                 {
-                    n = true;
+                    cn = true;
                 }
-                color1 = cell1;
 
-                int cell2 = GetCellFromLocalCoords(i, SIZE - 1, oldChunk);
-                if ((cell2 & TIMER_MASK) == 0 && color2 == (cell2 & COLOR_MASK))
+                int cell2 = GetCellFromLocalCoordsOld(i, SIZE - 1, n, ne, e, se, s, sw, w, nw);
+                if ((cell2 & TIMER_MASK) == 0)
                 {
                     count2++;
                 }
@@ -159,22 +156,19 @@ namespace GlowingPotato.CellAttack.Server.Simulator
                 {
                     count2 = 0;
                 }
-                if (count2 == 2)
+                if (count2 == 3)
                 {
-                    s = true;
+                    cs = true;
                 }
-                color2 = cell2;
             }
-            color1 = 0;
             count1 = 0;
-            color2 = 0;
             count2 = 0;
 
             // check east and west edge
-            for (int i = 0; i < SIZE; i++)
+            for (int i = -1; i <= SIZE; i++)
             {
-                int cell1 = GetCellFromLocalCoords(0, i, oldChunk);
-                if ((cell1 & TIMER_MASK) == 0 && color1 == (cell1 & COLOR_MASK))
+                int cell1 = GetCellFromLocalCoordsOld(0, i, n, ne, e, se, s, sw, w, nw);
+                if ((cell1 & TIMER_MASK) == 0)
                 {
                     count1++;
                 }
@@ -182,14 +176,13 @@ namespace GlowingPotato.CellAttack.Server.Simulator
                 {
                     count1 = 0;
                 }
-                if (count1 == 2)
+                if (count1 == 3)
                 {
-                    w = true;
+                    cw = true;
                 }
-                color1 = cell1 & COLOR_MASK;
 
-                int cell2 = GetCellFromLocalCoords(SIZE - 1, i, oldChunk);
-                if ((cell2 & TIMER_MASK) == 0 && color2 == (cell2 & COLOR_MASK))
+                int cell2 = GetCellFromLocalCoordsOld(SIZE - 1, i, n, ne, e, se, s, sw, w, nw);
+                if ((cell2 & TIMER_MASK) == 0)
                 {
                     count2++;
                 }
@@ -197,13 +190,42 @@ namespace GlowingPotato.CellAttack.Server.Simulator
                 {
                     count2 = 0;
                 }
-                if (count2 == 2)
+                if (count2 == 3)
                 {
-                    e = true;
+                    ce = true;
                 }
-                color2 = cell2 & COLOR_MASK;
             }
-            
+
+            // check corners
+            int cell3 = GetCellFromLocalCoordsOld(-1, 0, n, ne, e, se, s, sw, w, nw);
+            int cell4 = GetCellFromLocalCoordsOld(0, 0, n, ne, e, se, s, sw, w, nw);
+            int cell5 = GetCellFromLocalCoordsOld(0, -1, n, ne, e, se, s, sw, w, nw);
+            if ((cell3 & TIMER_MASK) == 0 && (cell4 & TIMER_MASK) == 0 && (cell5 & TIMER_MASK) == 0)
+            {
+                cnw = true;
+            }
+            cell3 = GetCellFromLocalCoordsOld(SIZE - 1, -1, n, ne, e, se, s, sw, w, nw);
+            cell4 = GetCellFromLocalCoordsOld(SIZE - 1, 0, n, ne, e, se, s, sw, w, nw);
+            cell5 = GetCellFromLocalCoordsOld(SIZE, 0, n, ne, e, se, s, sw, w, nw);
+            if ((cell3 & TIMER_MASK) == 0 && (cell4 & TIMER_MASK) == 0 && (cell5 & TIMER_MASK) == 0)
+            {
+                cne = true;
+            }
+            cell3 = GetCellFromLocalCoordsOld(SIZE, SIZE - 1, n, ne, e, se, s, sw, w, nw);
+            cell4 = GetCellFromLocalCoordsOld(SIZE - 1, SIZE - 1, n, ne, e, se, s, sw, w, nw);
+            cell5 = GetCellFromLocalCoordsOld(SIZE - 1, SIZE, n, ne, e, se, s, sw, w, nw);
+            if ((cell3 & TIMER_MASK) == 0 && (cell4 & TIMER_MASK) == 0 && (cell5 & TIMER_MASK) == 0)
+            {
+                cse = true;
+            }
+            cell3 = GetCellFromLocalCoordsOld(0, SIZE, n, ne, e, se, s, sw, w, nw);
+            cell4 = GetCellFromLocalCoordsOld(0, SIZE - 1, n, ne, e, se, s, sw, w, nw);
+            cell5 = GetCellFromLocalCoordsOld(-1, SIZE - 1, n, ne, e, se, s, sw, w, nw);
+            if ((cell3 & TIMER_MASK) == 0 && (cell4 & TIMER_MASK) == 0 && (cell5 & TIMER_MASK) == 0)
+            {
+                csw = true;
+            }
+
         }
 
         public void LoadThing(byte[] thing, int left, int top, int width, int height, byte defaultCell)

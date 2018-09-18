@@ -15,7 +15,7 @@ namespace GlowingPotato.CellAttack.Server.Simulator
 
         public ChunkPos North()
         {
-            return new ChunkPos(X, Y + 1);
+            return new ChunkPos(X, Y - 1);
         }
 
         public ChunkPos East()
@@ -25,7 +25,7 @@ namespace GlowingPotato.CellAttack.Server.Simulator
 
         public ChunkPos South()
         {
-            return new ChunkPos(X, Y - 1);
+            return new ChunkPos(X, Y + 1);
         }
 
         public ChunkPos West()
