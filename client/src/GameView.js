@@ -13,6 +13,7 @@ const colors = [
 ];
 const maxWidth = 200;
 const minWidth = 1;
+const viewMargin = 0.1;
 
 let colorCodes = [];
 for (let c = 0; c < 8; ++c) {
@@ -104,7 +105,7 @@ export default class GameView extends React.Component {
         let marginLowY = viewY - this.props.topY;
         let marginHighX = this.props.leftX + this.props.width - viewX - viewWidth;
         let marginHighY = this.props.topY + this.props.height - viewY - viewHeight;
-        if (marginLowX < viewWidth / 3 || marginLowY < viewHeight / 3 || marginHighX < viewWidth / 3 || marginHighY < viewHeight / 3) {
+        if (marginLowX < viewWidth * viewMargin || marginLowY < viewHeight * viewMargin || marginHighX < viewWidth * viewMargin || marginHighY < viewHeight * viewMargin) {
             this.props.onViewResize(Math.floor(viewX - viewWidth), Math.floor(viewY - viewHeight), Math.ceil(3 * viewWidth), Math.ceil(3 * viewHeight));
         }
     }
