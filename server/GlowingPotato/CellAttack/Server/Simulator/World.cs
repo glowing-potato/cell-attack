@@ -25,8 +25,42 @@ namespace GlowingPotato.CellAttack.Server.Simulator
             map.Keys.CopyTo(keys, 0);
             foreach (ChunkPos pos in keys)
             {
+                Chunk n = null, ne = null, e = null, se = null, s = null, sw = null, w = null, nw = null;
+                if (map.ContainsKey(pos.North()))
+                {
+                    n = map[pos.North()];
+                }
+                if (map.ContainsKey(pos.North().East()))
+                {
+                    ne = map[pos.North().East()];
+                }
+                if (map.ContainsKey(pos.East()))
+                {
+                    e = map[pos.East()];
+                }
+                if (map.ContainsKey(pos.South().East()))
+                {
+                    se = map[pos.South().East()];
+                }
+                if (map.ContainsKey(pos.South()))
+                {
+                    s = map[pos.South()];
+                }
+                if (map.ContainsKey(pos.South().West()))
+                {
+                    sw = map[pos.South().West()];
+                }
+                if (map.ContainsKey(pos.West()))
+                {
+                    w = map[pos.West()];
+                }
+                if (map.ContainsKey(pos.North().West()))
+                {
+                    nw = map[pos.North().West()];
+                }
+
                 // check if any chunks need to be created
-                map[pos].CheckEdges(out nc, out nec, out ec, out sec, out sc, out swc, out wc, out nwc);
+                map[pos].CheckEdges(n, ne, e, se, s, sw, w, nw, out nc, out nec, out ec, out sec, out sc, out swc, out wc, out nwc);
 
                 // create chunks
                 if (nc && (!map.ContainsKey(pos.North()) || map[pos.North()] == null))
