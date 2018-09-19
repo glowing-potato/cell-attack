@@ -10,12 +10,6 @@ namespace GlowingPotato.CellAttack.Server.World
     {
 
         private Dictionary<ChunkPos, Chunk> map = new Dictionary<ChunkPos, Chunk>();
-        private Dictionary<ChunkPos, bool> deleteMap = new Dictionary<ChunkPos, bool>();
-
-        public World()
-        {
-
-        }
 
         public void Simulate()
         {
@@ -143,7 +137,7 @@ namespace GlowingPotato.CellAttack.Server.World
                     }
 
                     // simulate chunk
-                    deleteMap[pos] = !c.Simulate(n, ne, e, se, s, sw, w, nw, null);
+                    c.DeleteFlag = !c.Simulate(n, ne, e, se, s, sw, w, nw);
                 });
             }).ToArray());
             
@@ -152,11 +146,9 @@ namespace GlowingPotato.CellAttack.Server.World
             foreach (ChunkPos pos in keys)
             {
                 // check if the chunk needs to be deleted
-                if (deleteMap[pos])
+                if (map[pos].DeleteFlag)
                 {
-                    Console.WriteLine(pos + " deleted");
                     map.Remove(pos);
-                    deleteMap.Remove(pos);
                 } else
                 {
                     // swap buffers

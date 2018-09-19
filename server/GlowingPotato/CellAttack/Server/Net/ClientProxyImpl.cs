@@ -5,46 +5,24 @@ using System.Text;
 
 namespace GlowingPotato.CellAttack.Server.Net
 {
-    class ClientProxyImpl : IClientProxy
+    public class ClientProxyImpl : IClientProxy
     {
 
         private IWebSocketConnection connection;
-        private string name;
-        private int screenLeftX;
-        private int screenTopY;
-        private short screenWidth;
-        private short screenHeight;
-        private int drawLeftX;
-        private int drawTopY;
-        private short drawWidth;
-        private short drawHeight;
-        private byte[] drawData;
+        private string name = null;
+        private int screenLeftX = 0;
+        private int screenTopY = 0;
+        private short screenWidth = 0;
+        private short screenHeight = 0;
+        private int drawLeftX = 0;
+        private int drawTopY = 0;
+        private short drawWidth = 0;
+        private short drawHeight = 0;
+        private byte[] drawData = null;
 
         public ClientProxyImpl(IWebSocketConnection connection)
         {
             this.connection = connection;
-        }
-
-        public void GetConnectPacket(out string name)
-        {
-            name = this.name;
-        }
-
-        public void GetClientDrawPacket(out int leftX, out int topY, out short width, out short height, out byte[] data)
-        {
-            leftX = drawLeftX;
-            topY = drawTopY;
-            width = drawWidth;
-            height = drawHeight;
-            data = drawData;
-        }
-
-        public void GetScreenSizePacket(out int leftX, out int topY, out short width, out short height)
-        {
-            leftX = screenLeftX;
-            topY = screenTopY;
-            width = screenWidth;
-            height = screenHeight;
         }
 
         public void SendCellUpdatePacket(float cells, float score)
@@ -79,5 +57,16 @@ namespace GlowingPotato.CellAttack.Server.Net
             BitConverter.GetBytes(centerY).CopyTo(packet, 5);
             connection.Send(packet);
         }
+
+        public string Name { get => name; set => name = value; }
+        public int ScreenLeftX { get => screenLeftX; set => screenLeftX = value; }
+        public int ScreenTopY { get => screenTopY; set => screenTopY = value; }
+        public short ScreenWidth { get => screenWidth; set => screenWidth = value; }
+        public short ScreenHeight { get => screenHeight; set => screenHeight = value; }
+        public int DrawLeftX { get => drawLeftX; set => drawLeftX = value; }
+        public int DrawTopY { get => drawTopY; set => drawTopY = value; }
+        public short DrawWidth { get => drawWidth; set => drawWidth = value; }
+        public short DrawHeight { get => drawHeight; set => drawHeight = value; }
+        public byte[] DrawData { get => drawData; set => drawData = value; }
     }
 }

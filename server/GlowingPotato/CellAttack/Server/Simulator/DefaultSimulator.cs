@@ -9,7 +9,7 @@ namespace GlowingPotato.CellAttack.Server.Simulator
     {
         public void Simulate(World.World world)
         {
-            
+            world.Simulate();
         }
     }
 }

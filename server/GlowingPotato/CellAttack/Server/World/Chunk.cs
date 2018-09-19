@@ -16,6 +16,7 @@ namespace GlowingPotato.CellAttack.Server.World
 
         private byte[] oldChunk = new byte[SIZE * SIZE];
         private byte[] newChunk = new byte[SIZE * SIZE];
+        private bool deleteFlag = false;
 
         public Chunk()
         {
@@ -336,5 +337,7 @@ namespace GlowingPotato.CellAttack.Server.World
         {
             array[y * SIZE + x] = (byte)value;
         }
+
+        public bool DeleteFlag { get => deleteFlag; set => deleteFlag = value; }
     }
 }

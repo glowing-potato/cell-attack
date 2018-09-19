@@ -37,9 +37,16 @@ namespace GlowingPotato.CellAttack.Server.Net
 
                 clientManager.ForEach((client) =>
                 {
+                    long minX = client.ScreenLeftX / Chunk.SIZE;
+                    long minY = client.ScreenTopY / Chunk.SIZE;
+                    long maxX = (client.ScreenLeftX + client.ScreenWidth) / Chunk.SIZE;
+                    long maxY = (client.ScreenTopY + client.ScreenHeight) / Chunk.SIZE;
                     foreach (ChunkPos pos in chunks)
                     {
-                        client.SendFieldDataPacket((int)(pos.X * Chunk.SIZE), (int)(pos.Y * Chunk.SIZE), Chunk.SIZE, Chunk.SIZE, world.GetChunks()[pos].GetOldBackingArray());
+                        if (pos.X >= minX && pos.X <= maxX && pos.Y >= minY && pos.Y <= maxY)
+                        {
+                            client.SendFieldDataPacket((int)(pos.X * Chunk.SIZE), (int)(pos.Y * Chunk.SIZE), Chunk.SIZE, Chunk.SIZE, world.GetChunks()[pos].GetOldBackingArray());
+                        }
                     }
                 });
 
@@ -60,7 +67,7 @@ namespace GlowingPotato.CellAttack.Server.Net
 
         public abstract void Tick();
 
-        public void Start()
+        public void Open()
         {
             server.Start(socket =>
             {
@@ -113,13 +120,28 @@ namespace GlowingPotato.CellAttack.Server.Net
                 };
                 socket.OnBinary = message =>
                 {
-                    //if (message.Length == )
+                    if (message.Length == 12)
+                    {
+                        // read screen size packet
+                        client.ScreenLeftX = BitConverter.ToInt32(message, 0);
+                        client.ScreenTopY = BitConverter.ToInt32(message, 4);
+                        client.ScreenWidth = BitConverter.ToInt16(message, 8);
+                        client.ScreenHeight = BitConverter.ToInt16(message, 10);
+                    } else
+                    {
+                        // read draw packet
+                    }
                 };
                 /*socket.OnError = error => 
                 {
 
                 };*/
             });
+            Console.WriteLine("Server initialized. Waiting for players.");
+        }
+
+        public void Start()
+        {
             timerDelay = 0;
             started = true;
             UpdateTimer();
